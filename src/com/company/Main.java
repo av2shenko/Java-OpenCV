@@ -6,29 +6,36 @@ import org.opencv.highgui.HighGui;
 import org.opencv.imgcodecs.Imgcodecs;
 import org.opencv.imgproc.Imgproc;
 
+import javax.imageio.ImageIO;
+import java.awt.image.BufferedImage;
+import java.io.File;
+import java.io.IOException;
+
 public class Main {
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws IOException {
 
         System.loadLibrary(Core.NATIVE_LIBRARY_NAME);
         Mat colorImage = Imgcodecs.imread("text.jpg");
-        Mat grayImage1 = new Mat(colorImage.rows(), colorImage.cols(), CvType.CV_64FC1);
+        Mat grayImage = new Mat(colorImage.rows(), colorImage.cols(), CvType.CV_8UC1);
+        Mat resultLibraryGaussianBlur = new Mat(colorImage.rows(), colorImage.cols(), CvType.CV_8UC1);
 
         double sigma = 6.0;
-        Imgproc.cvtColor(colorImage, grayImage1, Imgproc.COLOR_RGB2GRAY);
-        Imgproc.GaussianBlur(grayImage1, grayImage1, new Size(3, 3), sigma);
-        Imgcodecs.imwrite("text.bmp", grayImage1);
+        int width = 3;
+        int height = 3;
+        Imgproc.cvtColor(colorImage, grayImage, Imgproc.COLOR_RGB2GRAY);
+        Imgproc.GaussianBlur(grayImage, resultLibraryGaussianBlur, new Size(width, height), sigma);
+        Imgcodecs.imwrite("text.bmp", resultLibraryGaussianBlur);
 
-        Mat kernel = new Mat(3, 3, CvType.CV_64FC1);
-        kernel.put(0, 0, new double[]{0.5, 0.75, 0.5, 0.75, 1, 0.75, 0.5, 0.75, 0.5});
+        double[] kernel = {0.5, 0.75, 0.5, 0.75, 1, 0.75, 0.5, 0.75, 0.5};
+        new GaussianBlur().calculateWeightMatrix();
 
-        Mat grayImage2 = new Mat(colorImage.rows(), colorImage.cols(), CvType.CV_64FC1);
-        Imgproc.cvtColor(colorImage, grayImage2, Imgproc.COLOR_RGB2GRAY);
-        Mat resultImage = new GaussianBlur().GaussianBlurring(grayImage2, kernel, sigma);
-        HighGui.imshow("Color Image", colorImage);
-        HighGui.imshow("OpenCV Image", grayImage1);
-        HighGui.imshow("My Gaussian Image", resultImage);
-
+        Mat resultMyGaussianBlur = new GaussianBlur().GaussianBlurring(kernel, width, height,  grayImage);
+        Mat res = new GaussianBlur().GaussianB(kernel, width, height,  grayImage);
+//        HighGui.imshow("Color Image", colorImage);
+//        HighGui.imshow("Library GaussianBlur", resultLibraryGaussianBlur);
+//        HighGui.imshow("My GaussianBlur", resultMyGaussianBlur);
+//        HighGui.imshow("test", res);
         HighGui.waitKey(0);
     }
 }
