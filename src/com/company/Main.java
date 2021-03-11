@@ -1,7 +1,6 @@
 package com.company;
 
 import org.opencv.core.*;
-import org.opencv.core.Point;
 import org.opencv.highgui.HighGui;
 import org.opencv.imgcodecs.Imgcodecs;
 import org.opencv.imgproc.Imgproc;
@@ -16,26 +15,34 @@ public class Main {
     public static void main(String[] args) throws IOException {
 
         System.loadLibrary(Core.NATIVE_LIBRARY_NAME);
-        Mat colorImage = Imgcodecs.imread("text.jpg");
-        Mat grayImage = new Mat(colorImage.rows(), colorImage.cols(), CvType.CV_8UC1);
-        Mat resultLibraryGaussianBlur = new Mat(colorImage.rows(), colorImage.cols(), CvType.CV_8UC1);
 
-        double sigma = 6.0;
-        int width = 3;
-        int height = 3;
-        Imgproc.cvtColor(colorImage, grayImage, Imgproc.COLOR_RGB2GRAY);
-        Imgproc.GaussianBlur(grayImage, resultLibraryGaussianBlur, new Size(width, height), sigma);
-        Imgcodecs.imwrite("text.bmp", resultLibraryGaussianBlur);
+        Mat sourceImage = Imgcodecs.imread("sourceImage1.jpg");
+        Mat grayImageMat = new Mat(sourceImage.rows(), sourceImage.cols(), CvType.CV_8UC1);
+        Imgproc.cvtColor(sourceImage, grayImageMat, Imgproc.COLOR_RGB2GRAY);
+        HighGui.imshow("sourceImage", sourceImage);
 
-        double[] kernel = {0.5, 0.75, 0.5, 0.75, 1, 0.75, 0.5, 0.75, 0.5};
-        new GaussianBlur().calculateWeightMatrix();
+        Mat binarizationLibraryOtsu = new Mat();
+        int threshold = (int) Imgproc.threshold(grayImageMat, binarizationLibraryOtsu, 0, 255, Imgproc.THRESH_OTSU | Imgproc.THRESH_BINARY);
+        System.out.println("thresholdLibraryOtsu: " + threshold);
+        HighGui.imshow("binarizationLibraryOtsu", binarizationLibraryOtsu);
 
-        Mat resultMyGaussianBlur = new GaussianBlur().GaussianBlurring(kernel, width, height,  grayImage);
-        Mat res = new GaussianBlur().GaussianB(kernel, width, height,  grayImage);
-//        HighGui.imshow("Color Image", colorImage);
-//        HighGui.imshow("Library GaussianBlur", resultLibraryGaussianBlur);
-//        HighGui.imshow("My GaussianBlur", resultMyGaussianBlur);
-//        HighGui.imshow("test", res);
+        //Imgproc.GaussianBlur(grayImageMat, grayImageMat, new Size(3, 3), 6.0);
+
+        Imgcodecs.imwrite("grayImageMat.jpg", grayImageMat);
+        String path = "";
+        BufferedImage bufferedImage = ImageIO.read(new File(path));
+        BufferedImage grayBufferedImage = new BufferedImage(bufferedImage.getWidth(), bufferedImage.getHeight(), BufferedImage.TYPE_BYTE_GRAY);
+        for (int i = 0; i < bufferedImage.getWidth(); i++) {
+            for (int j = 0; j < bufferedImage.getHeight(); j++) {
+                int rgb = bufferedImage.getRGB(i, j);
+                grayBufferedImage.setRGB(i, j, rgb);
+                //System.out.println(rgb);
+            }
+        }
+        new Binarization().Otsu(grayBufferedImage, grayImageMat);
+
+        new Binarization().BradleyRoot(grayBufferedImage, grayImageMat);
+
         HighGui.waitKey(0);
     }
 }
